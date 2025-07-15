@@ -1,0 +1,1 @@
+savedcmd_/home/adi/aizada/kernel-playground/m5_localhost_monitor/localhost_monitor.mod := printf '%s\n'   localhost_monitor.o | awk '!x[$$0]++ { print("/home/adi/aizada/kernel-playground/m5_localhost_monitor/"$$0) }' > /home/adi/aizada/kernel-playground/m5_localhost_monitor/localhost_monitor.mod

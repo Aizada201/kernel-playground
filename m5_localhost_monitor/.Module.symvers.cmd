@@ -1,0 +1,1 @@
+savedcmd_/home/adi/aizada/kernel-playground/m5_localhost_monitor/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/adi/aizada/kernel-playground/m5_localhost_monitor/Module.symvers -T /home/adi/aizada/kernel-playground/m5_localhost_monitor/modules.order -i Module.symvers -e 
