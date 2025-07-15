@@ -1,20 +1,18 @@
-# Project Overview
+# Localhost Traffic Monitor
 
-This repository provides tools and resources for customizing and building a Linux kernel with a focus on packet filtering using the Netfilter subsystem. It also includes scripts and configurations for setting up a testing environment within virtual machines.
+This project focused on developing and testing a Linux kernel module to monitor localhost traffic. It tracks packet flows via loopback interfaces (127.0.0.1 for IPv4 and ::1 for IPv6), classifies packets by IP protocol version, and builds a histogram of packet sizes.
 
 ---
 
-## Repository Structure
+## Project structure
 
-### 1. `kernel` Folder
-Contains the kernel configuration, source code, and a custom kernel module. The `Makefile` in this folder supports various tasks:
+m5_localhost_monitor/
+├── localhost_monitor.c          # Kernel module source code
+├── print_localhost_stats.sh     # Script to read /proc file
+├── Makefile                     # Build instructions
+├── README.md                    # Project description
+└── podman/                      # Optional VM/container setup (Podman)
 
-- **config**: Copies the kernel configuration file into the Linux kernel source directory.
-- **kbuild**: Builds the entire Linux kernel.
-- **install**: Creates a symbolic link to the compiled kernel (`bzImage`) inside the `tests/vm` folder, enabling the VM to boot with this custom kernel.
-- **kmodule**: Builds the custom kernel module and copies the resulting `.ko` file into the `tests/vm/shared` folder. This allows the VM's guest OS to load the module using `insmod`.
-
-**Note:** The `modules` subfolder contains the source code for the custom kernel module and a `Makefile` to compile and install it into the shared VM folder. Refer to the specific `README.md` within the `modules` folder for instructions on recompiling and copying the module after modifications.
 
 ---
 
