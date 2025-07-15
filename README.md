@@ -1,76 +1,98 @@
-# Localhost Traffic Monitor
+## 1. Project Overview
 
-This project focuses on developing and testing a Linux kernel module to monitor localhost traffic. It tracks packet flows via loopback interfaces (127.0.0.1 for IPv4 and ::1 for IPv6), classifies packets by IP protocol version and transport protocol, and builds a histogram of packet sizes. All statistics are made available via procfs and printed to the kernel log on module removal.
+This project implements a Linux kernel module to monitor and classify localhost (loopback) traffic (IPv4: 127.0.0.1/8, IPv6: ::1). The module detects such traffic, classifies packets by protocol (TCP, UDP, ICMP, ICMPv6), tracks packet size distribution, and exports statistics via procfs for user-space access. The project is designed for the kernel-playground environment.
 
 ---
 
-## How to Set Up
+## 2. How to Set Up
 
-### Prerequisites
+**Step 1: Create the Project Directory and Files**
+- Inside your cloned `kernel-playground` repository, create a folder named `m5_localhost_monitor`.
+- Inside this folder, create:
+  - `loopback_monitor.c` — the kernel module source code.
+  - `Makefile` — for building the kernel module.
 
-- Linux system with kernel headers installed  
-- Git  
-- Make  
-- Root privileges  
 
-### Setup Instructions
-
-```bash
-git clone https://github.com/YOUR_USERNAME/kernel-playground.git
-cd kernel-playground/m5_localhost_monitor
-
+**Step 2: Build the Module**
+```sh
+cd m5_localhost_monitor
 make
+```
+This will produce `loopback_monitor.ko`.
 
-sudo insmod localhost_monitor.ko
+---
 
-ping -c 2 127.0.0.1
-ping -c 2 ::1
+## 3. Basic Level
 
-./print_localhost_stats.sh
+**Goal:**  
+Detect and log traffic to/from 127.0.0.1 (IPv4) and ::1 (IPv6).
 
-sudo rmmod localhost_monitor
-dmesg | tail -30
+**Implementation:**  
+- The kernel module uses Netfilter hooks to inspect packets.
+- It logs a message to the kernel log whenever a loopback packet is detected.
+
+**After `make`:**
+- Load the module:
+  ```sh
+  sudo insmod loopback_monitor.ko
+  ```
+- Generate traffic:
+  ```sh
+  ping -c 2 127.0.0.1
+  ping -c 2 ::1
+  ```
+- Check the kernel log for detection messages:
+  ```sh
+  sudo dmesg | tail -30
+  ```
+
+**Example Results:**
+```
+PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.255 ms
+64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.068 ms
+
+--- 127.0.0.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+```
+And in the kernel log:
+```
+[loopback_monitor] IPv4 loopback packet detected
+[loopback_monitor] IPv6 loopback packet detected
 ```
 
----
+<img width="1210" height="271" alt="image" src="https://github.com/user-attachments/assets/af65e5cf-74b9-4e84-8fea-3c888d6ee20f" />
+<img width="1213" height="208" alt="image" src="https://github.com/user-attachments/assets/b5d5cdd1-86a6-46fc-858e-be0e79668921" />
 
-## Basic Level
-
-### Goal
-
-- Detect traffic to/from 127.0.0.1 (IPv4) and ::1 (IPv6)
-
-### Implementation
-
-- Uses Netfilter hooks to intercept packets on loopback interfaces  
-- Logs each matching packet to the kernel log with `printk()`  
 
 ---
 
-## Intermediate Level
+## 4. Intermediate Level
 
-### Goal
+**Goal:**  
+Classify packets by IP version and protocol, track packet size distribution, and export statistics via procfs.
 
-- Classify packets by IP version and protocol  
-- Track packet size distribution  
-- Export live stats to procfs  
+**Changes in `loopback_monitor.c`:**
+- Added counters for IPv4, IPv6, TCP, UDP, ICMP, and ICMPv6.
+- Implemented a histogram for packet size distribution.
+- Exported statistics to `/proc/localhost_stats`.
+- Printed a summary to the kernel log on module unload.
+- A helper script (print_localhost_stats.sh) is provided to easily read and display the statistics from /proc/localhost_stats.
 
-### Implementation
+**Further Commands:**
+- Generate more traffic (ICMP, TCP, UDP, etc.).
+- View live stats:
+  ```sh
+  ./print_localhost_stats.sh
+  ```
+  or
+  ```sh
+  cat /proc/localhost_stats
+  ```
+<img width="1209" height="292" alt="image" src="https://github.com/user-attachments/assets/82d93165-4684-4c55-bbba-4e48179d9a0b" />
 
-- Counts packets by:  
-  - IP version: IPv4, IPv6  
-  - Protocol: TCP, UDP, ICMP, ICMPv6  
-- Tracks packet sizes using histogram buckets:  
-  - 0–127, 128–255, 256–511, 512–1023, 1024+  
-- Exports statistics to `/proc/localhost_stats`  
-- Prints summary to `dmesg` when unloaded  
 
----
-
-## Example Output
-
-### `/proc/localhost_stats`
-
+**Example Results:**
 ```
 ==== Localhost Monitor Stats ====
 IPv4 packets: 10
@@ -86,51 +108,9 @@ Packet size histogram (bytes):
 512-1023: 3
 1024-65535: 2
 ```
-
-### Kernel log summary
-
+And in the kernel log:
 ```
-[localhost_monitor] Final stats: IPv4=10, IPv6=4, TCP=2, UDP=3, ICMP=5, ICMPv6=1
+[loopback_monitor] Final stats: IPv4=10, IPv6=4, TCP=2, UDP=3, ICMP=5, ICMPv6=1
 ```
 
 ---
-
-## Screenshots
-
-![Module loaded and stats](path/to/your/screenshot1.png)  
-![Procfs output](path/to/your/screenshot2.png)  
-![Kernel log summary](path/to/your/screenshot3.png)
-
----
-
-## Development Notes
-
-### Design Choices
-
-- Used Netfilter hooks for efficient packet inspection  
-- Chose histogram buckets to cover typical packet sizes  
-- Used procfs for easy user-space access to stats  
-
-### Implementation
-
-- IPv4/IPv6 and protocol classification in Netfilter hooks  
-- Packet size histogram updated per packet  
-- Procfs entry `/proc/localhost_stats` for live stats  
-- Summary printed to kernel log on module unload  
-
-### Challenges
-
-- Ensuring compatibility with modern kernel APIs (`struct proc_ops`)  
-- Testing both IPv4 and IPv6 traffic in a VM environment  
-
----
-
-## Documentation
-
-- [Google Doc with full report and screenshots](https://docs.google.com/document/d/1KW6rukKouOoXsEkoVlZb6jkgFjA_FYvWIC7n12Ah6Eg)
-
----
-
-## License
-
-This project inherits the license of the original [kernel-playground](https://github.com/netgroup/kernel-playground) repository.
