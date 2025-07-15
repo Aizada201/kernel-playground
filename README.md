@@ -1,56 +1,92 @@
 # Localhost Traffic Monitor
 
-This project focused on developing and testing a Linux kernel module to monitor localhost traffic. It tracks packet flows via loopback interfaces (127.0.0.1 for IPv4 and ::1 for IPv6), classifies packets by IP protocol version, and builds a histogram of packet sizes.
+This project focuses on developing and testing a Linux kernel module to monitor localhost traffic. It tracks packet flows via loopback interfaces (127.0.0.1 for IPv4 and ::1 for IPv6), classifies packets by IP protocol version and transport protocol, and builds a histogram of packet sizes. All statistics are made available via procfs and printed to the kernel log on module removal.
 
 ---
 
-## Project structure
+## How to Set Up
 
-m5_localhost_monitor/
-├── localhost_monitor.c          # Kernel module source code
-├── print_localhost_stats.sh     # Script to read /proc file
-├── Makefile                     # Build instructions
-├── README.md                    # Project description
-└── podman/                      # Optional VM/container setup (Podman)
+### Prerequisites
+
+- Linux system with kernel headers installed  
+- Git  
+- Make  
+- Root privileges  
+
+### Setup Instructions
+
+```bash
+git clone https://github.com/YOUR_USERNAME/kernel-playground.git
+cd kernel-playground/m5_localhost_monitor
+
+make
+
+sudo insmod localhost_monitor.ko
+
+ping -c 2 127.0.0.1
+ping -c 2 ::1
+
+./print_localhost_stats.sh
+
+sudo rmmod localhost_monitor
+dmesg | tail -30
+Basic Level
+
+Goal
+Detect traffic to/from 127.0.0.1 (IPv4) and ::1 (IPv6)
+Implementation
+Uses Netfilter hooks to intercept packets on loopback interfaces
+Logs each matching packet to the kernel log with printk()
+Intermediate Level
+
+Goal
+Classify packets by IP version and protocol
+Track packet size distribution
+Export live stats to procfs
+Implementation
+Counts packets by:
+IP version: IPv4, IPv6
+Protocol: TCP, UDP, ICMP, ICMPv6
+Tracks packet sizes using histogram buckets:
+0–127, 128–255, 256–511, 512–1023, 1024+
+Exports statistics to /proc/localhost_stats
+Prints summary to dmesg when unloaded
+Example Output
+
+/proc/localhost_stats
+==== Localhost Monitor Stats ====
+IPv4 packets: 10
+IPv6 packets: 4
+TCP packets: 2
+UDP packets: 3
+ICMP packets: 5
+ICMPv6 packets: 1
+Packet size histogram (bytes):
+0-127: 4
+128-255: 3
+256-511: 2
+512-1023: 3
+1024-65535: 2
+Kernel log summary
+[localhost_monitor] Final stats: IPv4=10, IPv6=4, TCP=2, UDP=3, ICMP=5, ICMPv6=1
+Screenshots
 
 
----
 
-### 2. `podman` Folder
-Includes scripts and configurations to set up a containerized environment for building and running the kernel and modules.
 
-**Note:** For setup instructions, see the `README.md` inside the `podman` folder.
 
----
+Development Notes
 
-### 3. `tests` Folder
-Contains:
-- `vm`: The root filesystem used by the virtual machine to run the guest OS with the custom kernel. It also includes scripts to build, run, and connect to the VM.
-- `scripts`: Collection of scripts for testing and various use cases within the VM environment.
+Design Choices
+Used Netfilter hooks for efficient packet inspection
+Chose histogram buckets to cover typical packet sizes
+Used procfs for easy user-space access to stats
+Implementation
+IPv4/IPv6 and protocol classification in Netfilter hooks
+Packet size histogram updated per packet
+Procfs entry /proc/localhost_stats for live stats
+Summary printed to kernel log on module unload
+Challenges
+Ensuring compatibility with modern kernel APIs (struct proc_ops)
+Testing both IPv4 and IPv6 traffic in a VM environment
 
----
-
-## How to Get Started
-
-1. Navigate to the `podman` folder:
-
-   ```bash
-   cd podman
-   ```
-
-2. Follow the instructions provided in the `README.md` within the `podman` folder to set up the containerized environment.
-
----
-
-## Additional Notes
-- After setting up the environment, you can build and install the kernel and modules using the provided make targets.
-- Use the scripts inside the `tests/scripts` folder for testing specific functionalities within the VM.
-
----
-
-## Summary
-This repository is designed to facilitate customizing the Linux kernel, building kernel modules, and testing them within virtual machines, all orchestrated through containerized environments. Follow the provided instructions in each subfolder's `README.md` files to properly set up and operate the environment.
-
----
-
-*For further assistance or questions, refer to the individual README files within each folder.*
