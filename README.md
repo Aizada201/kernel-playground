@@ -47,22 +47,14 @@ Detect and log traffic to/from 127.0.0.1 (IPv4) and ::1 (IPv6).
   ```
 
 **Example Results:**
-```
-PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
-64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.255 ms
-64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.068 ms
+<img width="1210" height="271" alt="image" src="https://github.com/user-attachments/assets/af65e5cf-74b9-4e84-8fea-3c888d6ee20f" />
+<img width="1213" height="208" alt="image" src="https://github.com/user-attachments/assets/b5d5cdd1-86a6-46fc-858e-be0e79668921" />
 
---- 127.0.0.1 ping statistics ---
-2 packets transmitted, 2 received, 0% packet loss, time 1001ms
-```
 And in the kernel log:
 ```
 [loopback_monitor] IPv4 loopback packet detected
 [loopback_monitor] IPv6 loopback packet detected
 ```
-
-<img width="1210" height="271" alt="image" src="https://github.com/user-attachments/assets/af65e5cf-74b9-4e84-8fea-3c888d6ee20f" />
-<img width="1213" height="208" alt="image" src="https://github.com/user-attachments/assets/b5d5cdd1-86a6-46fc-858e-be0e79668921" />
 
 
 ---
@@ -89,25 +81,11 @@ Classify packets by IP version and protocol, track packet size distribution, and
   ```sh
   cat /proc/localhost_stats
   ```
-<img width="1209" height="292" alt="image" src="https://github.com/user-attachments/assets/82d93165-4684-4c55-bbba-4e48179d9a0b" />
 
 
 **Example Results:**
-```
-==== Localhost Monitor Stats ====
-IPv4 packets: 10
-IPv6 packets: 4
-TCP packets: 2
-UDP packets: 3
-ICMP packets: 5
-ICMPv6 packets: 1
-Packet size histogram (bytes):
-0-127: 4
-128-255: 3
-256-511: 2
-512-1023: 3
-1024-65535: 2
-```
+<img width="1209" height="292" alt="image" src="https://github.com/user-attachments/assets/82d93165-4684-4c55-bbba-4e48179d9a0b" />
+
 And in the kernel log:
 ```
 [loopback_monitor] Final stats: IPv4=10, IPv6=4, TCP=2, UDP=3, ICMP=5, ICMPv6=1
