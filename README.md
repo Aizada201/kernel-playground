@@ -90,5 +90,9 @@ And in the kernel log:
 ```
 [loopback_monitor] Final stats: IPv4=10, IPv6=4, TCP=2, UDP=3, ICMP=5, ICMPv6=1
 ```
-
+**Unload the module and view the summary:**
+```
+  sudo rmmod loopback_monitor
+  sudo dmesg | tail -30
+```
 ---
